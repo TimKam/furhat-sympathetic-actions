@@ -1,0 +1,7 @@
+furhat-sympathetic-actions/out/*
+furhat-sympathetic-actions/logs/*
+furhat-sympathetic-actions/.gradle/*
+furhat-sympathetic-actions/.idea/*
+furhat-sympathetic-actions/gradle/*
+furhat-sympathetic-actions/assets/*
+furhat-sympathetic-actions/build/*
