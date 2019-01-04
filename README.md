@@ -7,7 +7,7 @@ We adjusted the original ultimatum game as follows:
 
 * It is played between a human and an autonomous agent (Furhat). Depending on the configuration, the *agent* might act rationally from the perspective of classical economic theory, or might be more generous ("sympathetic") to the human.
 
-* The players play a set of six games and take turns. First, the *agent* is the *proposer* and the human the **responder*.  After each game, the players switch roles.
+* The players play a set of six games and take turns. First, the *agent* is the *proposer* and the human the *responder*. After each game, the players switch roles.
 
 
 ## Configuration
@@ -15,17 +15,21 @@ The Furhat skill can be configured to adjust the behavior of the *agent* player.
 Changing the configuration requires adjusting a line in the source code:
 In line 11 of [./furhat-sympathetic-actions/src/main/kotlin/furhatos/app/sympathetic_actions/flow/interaction.kt)](./furhat-sympathetic-actions/src/main/kotlin/furhatos/app/sympathetic_actions/flow/interaction.kt), the value of ``mode`` can be adjusted to the following strings:
 
-* ``"rational"``: The agent acts purely rationally, assuming the human player does the same. I.e., the agent always offers a split of (``agent: 99, human: 1``) and accepts any offer that provides him with any money (``agent: > 0, human: < 100``).
+* ``"rational"``: The agent acts purely rationally, assuming the human player does the same. I.e., the agent always offers a split of (``agent: 99, human: 1``) and accepts any offer that provides it with any money (``agent: > 0, human: < 100``).
 
-* ``"sympathetic"``: The agent player does not act purely rationally, but makes some concessions to the user: i.e., when splitting the money, the agent makes an initial concession to the human player, "hoping for good will" and in later rounds adjust its behavior to the human player's behavior in the previous round.
+* ``"sympathetic"``: The agent player does not act purely rationally, but makes some concessions to the user: i.e., when splitting the money, the agent makes an initial concession to the human player, "hoping for good will", and in later rounds adjust its behavior to the human player's behavior in the previous round.
 
 * ``"explainable"``: The agent player acts *sympathetically* and in addition explains its sympathetic behavior to the user.
 
 
 ## Running the Furhat Skill
 Follow the instructions in the Furhat documentation to run the skill.
-You need to import the ``furhat-sympathetic-actions`` folder you find in the root directory of this repository
-Note that we use [Gen2 Legacy](https://docs.furhat.io/legacy/) version of the Furhat SDK to be compatible with the 1st generation Furhat hardware.
+
+Notes:
+
+* You need to import the ``furhat-sympathetic-actions`` folder you find in the root directory of this repository.
+
+* We use the [Gen2 Legacy](https://docs.furhat.io/legacy/) version of the Furhat SDK to be compatible with the 1st generation Furhat hardware.
 
 
 ## Interaction
