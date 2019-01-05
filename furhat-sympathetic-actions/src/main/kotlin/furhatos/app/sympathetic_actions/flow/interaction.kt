@@ -18,11 +18,12 @@ var tempCoinsShared = 0
 var sharingHistoryAgent : MutableList<Int> = mutableListOf()
 var sharingHistoryHuman : MutableList<Int> = mutableListOf()
 
-
 val Start : State = state(Interaction) {
 
     onEntry {
         furhat.say(introduction)
+        furhat.gesture(Gestures.BigSmile)
+        delay(1000)
         furhat.ask("Say the word 'start' when you are ready to go.")
     }
 
@@ -40,7 +41,8 @@ val StartRound : State = state {
                 val coinsSharedResult = determineCoinsShared(sharingHistoryAgent, sharingHistoryHuman, mode)
                 tempCoinsShared = coinsSharedResult.first
                 val explanation = coinsSharedResult.second
-                furhat.say(/*Round $roundNumber: */"It is my turn to take the role of the proposer. $explanation I give you $tempCoinsShared coins and keep the remaining ones. ")
+                furhat.say(/*Round $roundNumber: */"It is my turn to take the role of the proposer. $explanation I give you ${pluralize(tempCoinsShared, "coin", "coins")} and keep the remaining coins. ")
+                delay(500)
                 furhat.ask("As the responder, do you accept the offer?")
                 sharingHistoryAgent.add(tempCoinsShared)
             }
@@ -48,21 +50,24 @@ val StartRound : State = state {
                 tempCoinsShared = furhat.askFor<Number>("It is your turn to take the role of the proposer. How many coins do you want to share?")!!.value
                 sharingHistoryHuman.add(tempCoinsShared)
                 if (determineAcceptance(tempCoinsShared, mode)) {
-                    furhat.say("Great, I take them. Now, you receive ${100 - tempCoinsShared} coins and I receive $tempCoinsShared coins.")
+                    furhat.say("Great, I take them. Now, you receive ${pluralize(100 - tempCoinsShared, "coin", "coins")} and I receive ${pluralize(tempCoinsShared, "coin", "coins")}.")
                     coinsEarnedAgent.add(tempCoinsShared)
                     coinsEarnedHuman.add((100 - tempCoinsShared))
                 } else {
+                    coinsEarnedAgent.add(0)
+                    coinsEarnedHuman.add(0)
                     furhat.say("Hm... I reject. Neither of us receives their share.")
                     sharingHistoryAgent.add(0)
                 }
                 furhat.gesture(Gestures.Thoughtful)
+                delay(500)
                 nextRound(furhat)
             }
         }
     }
 
     onResponse<Yes>{
-        furhat.say("Great! Then you receive $tempCoinsShared coins and I receive ${100 - tempCoinsShared} coins. ")
+        furhat.say("Great! Then you receive ${pluralize(tempCoinsShared, "coin", "coins")} and I receive ${pluralize(100 - tempCoinsShared, "coin", "coins")}. ")
         coinsEarnedAgent.add((100 - tempCoinsShared))
         coinsEarnedHuman.add(tempCoinsShared)
         furhat.gesture(Gestures.Thoughtful)
@@ -70,6 +75,8 @@ val StartRound : State = state {
     }
 
     onResponse<No>{
+        coinsEarnedAgent.add(0)
+        coinsEarnedHuman.add(0)
         furhat.say("Too bad! Then neither of us receives their share.")
         nextRound(furhat)
     }
@@ -99,8 +106,8 @@ fun nextRound(furhat: Furhat/*, runner: TriggerRunner<*>*/) {
     } else {
         val coinsEarnedAgentSum = coinsEarnedAgent.toIntArray().sum()
         val coinsEarnedHumanSum = coinsEarnedHuman.toIntArray().sum()
-        print("Coins human: $coinsEarnedHumanSum; coins agent: $coinsEarnedAgentSum" )
-        furhat.say("Great! The game is over. In total you earned $coinsEarnedHumanSum virtual coins. I earned $coinsEarnedAgentSum virtual coins. Thanks for playing!")
+        print("Coins human: $coinsEarnedHuman = $coinsEarnedHumanSum; coins agent: $coinsEarnedAgent = $coinsEarnedAgentSum" )
+        furhat.say("Great! The game is over. In total you earned ${pluralize(coinsEarnedHumanSum, "virtual coin", "virtual coins")}. I earned ${pluralize(coinsEarnedAgentSum, "virtual coin", "virtual coins")}. Thanks for playing!")
         // runner.goto(Idle)
     }
 }
@@ -110,9 +117,9 @@ fun determineCoinsShared(historyAgent: List<Int>, historyHuman: List<Int>, mode:
         "rational" -> {
             return Pair(1, "")
         }
-        "sympathetic", "explainable" -> {
+        "sympathetic" -> {
             if(historyHuman.isEmpty()) {
-                return Pair(10, "Because I am nice, ")
+                return Pair(10, "")
             } else {
                 when (historyHuman.last()) {
                     0 -> {
@@ -132,10 +139,10 @@ fun determineCoinsShared(historyAgent: List<Int>, historyHuman: List<Int>, mode:
             } else {
                 when (historyHuman.last()) {
                     0 -> {
-                        return Pair(1, "Although you did not share anything with me last time, ")
+                        return Pair(1, "Although you did not share anything with me last time, I am nice and ")
                     }
                     in 1..99 -> {
-                        return Pair(historyHuman.last(), "Because you have shared the same amount of coins with me the previous time, ")
+                        return Pair(historyHuman.last(), "Because you have shared the same amount of coins with me the previous time, I pay the favor back and")
                     } else -> {
                     return Pair(1, "")
                 }
@@ -162,4 +169,11 @@ fun determineAcceptance(tempCoinsShared: Int, mode: String): Boolean {
         }
     }
     return false
+}
+
+fun pluralize(number: Int, baseTerm: String, pluralTerm: String): String {
+    if (number == 1) {
+        return "$number $baseTerm"
+    }
+    return "$number $pluralTerm"
 }
