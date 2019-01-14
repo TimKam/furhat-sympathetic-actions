@@ -1,11 +1,11 @@
 # Human-Computer Interaction Experiment - Instructions
-*Interactive and Intelligent Systems  Group, Umeå University. Winter 2019.*
+*Interactive and Intelligent Systems  Group, Umeå University. Winter 2018/2019.*
 
 Dear study participant,
 
 thank you for volunteering for this study.
-In this experiment, we ask you to play a game with a robot (called *Furhat*).
-The experiment will help us gain insights about how humans react to specific types of robot behavior.
+In this experiment, we ask you to play a game with a robot (the robot name is *Furhat*).
+The experiment will help us gain insights into how humans react to specific types of robot behavior.
 
 The game is a two-player game and goes over several turns.
 Each turn goes like this:
@@ -21,7 +21,7 @@ Each turn goes like this:
 
 First, the Furhat robot will play the role of the 'proposer' and you will be the 'responder'.
 Then, we will take turns and change roles.
-In total, we will play **six rounds**: three times the robot makes the offer, and three times you make the offer.
+In total, we will play **three sessions** with **six rounds** each.
 Feel free to make notes about the amount of coins you received after each turn.
 
 Depending on the amount of coins you receive during the game, you will rewarded with more or less sweets for participating in the experiment.

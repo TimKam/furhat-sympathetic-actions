@@ -14,3 +14,21 @@ class NextTurnIntent : Intent() {
         return listOf("Next", "Next turn")
     }
 }
+
+class Mode1Intent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("Mode Apple")
+    }
+}
+
+class Mode2Intent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("Mode Banana")
+    }
+}
+
+class Mode3Intent : Intent() {
+    override fun getExamples(lang: Language): List<String> {
+        return listOf("Mode Lemon")
+    }
+}

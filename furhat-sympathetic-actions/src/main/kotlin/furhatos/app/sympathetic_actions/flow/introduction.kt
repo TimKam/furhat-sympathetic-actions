@@ -20,7 +20,7 @@ val introduction = """
 
     Then, we will take turns and change roles.
 
-    In total, we will play 6 rounds: 3 times I make the offer, and 3 times you make the offer.
+    In total, we play six games.
 
     Depending on the amount of coins you receive during the game, you will rewarded with more or less sweets for participating in the experiment.
 

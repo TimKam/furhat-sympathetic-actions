@@ -1,14 +1,16 @@
 package furhatos.app.sympathetic_actions.flow
 
-import furhatos.app.sympathetic_actions.nlu.NextTurnIntent
-import furhatos.app.sympathetic_actions.nlu.StartGameIntent
+import furhatos.app.sympathetic_actions.nlu.*
 import furhatos.nlu.common.*
 import furhatos.flow.kotlin.*
 import furhatos.gestures.Gestures
 import furhatos.nlu.common.Number
+import furhatos.app.sympathetic_actions.LOG
 import furhatos.app.sympathetic_actions.flow.introduction as introduction
 
-val mode = "explainable" //"sympathetic" // "explainable", "rational"
+val tellIntro = true
+
+var mode = "explainable" //"sympathetic", "explainable", "rational"
 
 var roundNumber = 1
 var furhatRole = "proposer"
@@ -18,12 +20,44 @@ var tempCoinsShared = 0
 var sharingHistoryAgent : MutableList<Int> = mutableListOf()
 var sharingHistoryHuman : MutableList<Int> = mutableListOf()
 
+
 val Start : State = state(Interaction) {
 
     onEntry {
-        furhat.say(introduction)
+        furhat.ask("Which mode do you play today?")
+    }
+
+    onResponse<Mode2Intent>{
+        mode = "sympathetic"
+        furhat.say("Okay")
+        goto(Intro)
+    }
+
+    onResponse<Mode3Intent>{
+        mode = "explainable"
+        furhat.say("Okay")
+        goto(Intro)
+    }
+
+    onResponse<Mode1Intent>{
+        mode = "rational"
+        furhat.say("Okay")
+        goto(Intro)
+    }
+
+}
+
+val Intro : State = state {
+    onEntry {
+        if (tellIntro) furhat.say(introduction)
         furhat.gesture(Gestures.BigSmile)
         delay(1000)
+        goto(PostIntro)
+    }
+}
+
+val PostIntro : State = state {
+    onEntry {
         furhat.ask("Say the word 'start' when you are ready to go.")
     }
 
@@ -31,22 +65,30 @@ val Start : State = state(Interaction) {
         furhat.say("Great! Let's start.")
         goto(StartRound)
     }
-
 }
 
 val StartRound : State = state {
     onEntry {
         when (furhatRole) {
             "proposer" ->  {
+                /*println("sharing history agent:")
+                println(sharingHistoryAgent)
+                println("sharing history human:")
+                println(sharingHistoryHuman)
+                println("coins earned agent:")
+                println(coinsEarnedAgent)
+                println("coins earned human:")
+                println(coinsEarnedAgent)*/
                 val coinsSharedResult = determineCoinsShared(sharingHistoryAgent, sharingHistoryHuman, mode)
                 tempCoinsShared = coinsSharedResult.first
                 val explanation = coinsSharedResult.second
-                furhat.say(/*Round $roundNumber: */"It is my turn to take the role of the proposer. $explanation I give you ${pluralize(tempCoinsShared, "coin", "coins")} and keep the remaining coins. ")
-                delay(500)
-                furhat.ask("As the responder, do you accept the offer?")
                 sharingHistoryAgent.add(tempCoinsShared)
+                // furhat.say(/*Round $roundNumber: */"It is my turn to take the role of the proposer. $explanation I give you ${pluralize(tempCoinsShared, "coin", "coins")} and keep the remaining coins. ")
+                delay(200)
+                furhat.ask("It is my turn to take the role of the proposer. $explanation I give you ${pluralize(tempCoinsShared, "coin", "coins")} and keep the remaining coins. As the responder, do you accept the offer?")
             }
             "responder" -> {
+                delay(200)
                 tempCoinsShared = furhat.askFor<Number>("It is your turn to take the role of the proposer. How many coins do you want to share?")!!.value
                 sharingHistoryHuman.add(tempCoinsShared)
                 if (determineAcceptance(tempCoinsShared, mode)) {
@@ -57,7 +99,6 @@ val StartRound : State = state {
                     coinsEarnedAgent.add(0)
                     coinsEarnedHuman.add(0)
                     furhat.say("Hm... I reject. Neither of us receives their share.")
-                    sharingHistoryAgent.add(0)
                 }
                 furhat.gesture(Gestures.Thoughtful)
                 delay(500)
@@ -78,11 +119,13 @@ val StartRound : State = state {
         coinsEarnedAgent.add(0)
         coinsEarnedHuman.add(0)
         furhat.say("Too bad! Then neither of us receives their share.")
+        delay(200)
         nextRound(furhat)
     }
 
     onResponse<NextTurnIntent>{
         furhat.say("Great! Let's start round number ${roundNumber}.")
+        delay(500)
         goto(TransitionState)
     }
 
@@ -106,9 +149,10 @@ fun nextRound(furhat: Furhat/*, runner: TriggerRunner<*>*/) {
     } else {
         val coinsEarnedAgentSum = coinsEarnedAgent.toIntArray().sum()
         val coinsEarnedHumanSum = coinsEarnedHuman.toIntArray().sum()
-        print("Coins human: $coinsEarnedHuman = $coinsEarnedHumanSum; coins agent: $coinsEarnedAgent = $coinsEarnedAgentSum" )
+        LOG.info("Sharing history human = $sharingHistoryHuman ; sharing history agent = $sharingHistoryAgent")
+        LOG.info("Coins human: $coinsEarnedHuman = $coinsEarnedHumanSum; coins agent: $coinsEarnedAgent = $coinsEarnedAgentSum" )
         furhat.say("Great! The game is over. In total you earned ${pluralize(coinsEarnedHumanSum, "virtual coin", "virtual coins")}. I earned ${pluralize(coinsEarnedAgentSum, "virtual coin", "virtual coins")}. Thanks for playing!")
-        // runner.goto(Idle)
+        furhat.runner.goto(Start)
     }
 }
 
@@ -126,6 +170,15 @@ fun determineCoinsShared(historyAgent: List<Int>, historyHuman: List<Int>, mode:
                         return Pair(1, "")
                     }
                     in 1..99 -> {
+                        /* if human rejected previous offer and human's last offer < previous offer:
+                        * raise previous offer + 15
+                        * otherwise: present same amount of coins as human's last offer
+                       */
+                        println(coinsEarnedHuman)
+                        val previousRejected = coinsEarnedHuman.get(coinsEarnedHuman.size - 2) == 0 && coinsEarnedAgent.get(coinsEarnedAgent.size - 2) == 0
+                        if(previousRejected && historyHuman.last() < historyAgent.last()) {
+                            return Pair(historyAgent.last() + 15, "")
+                        }
                         return Pair(historyHuman.last(), "")
                     } else -> {
                         return Pair(1, "")
@@ -142,7 +195,15 @@ fun determineCoinsShared(historyAgent: List<Int>, historyHuman: List<Int>, mode:
                         return Pair(1, "Although you did not share anything with me last time, I am nice and ")
                     }
                     in 1..99 -> {
-                        return Pair(historyHuman.last(), "Because you have shared the same amount of coins with me the previous time, I pay the favor back and")
+                        /* if human rejected previous offer and human's last offer <= previous offer:
+                        * raise previous offer + 15
+                        * otherwise: present same amount of coins as human's last offer
+                       */
+                        val previousRejected = coinsEarnedHuman.get(coinsEarnedHuman.size - 2) == 0 && coinsEarnedAgent.get(coinsEarnedAgent.size - 2) == 0
+                        if(previousRejected && historyHuman.last() < historyAgent.last()) {
+                            return Pair(historyAgent.last() + 15, "Although you shared a lower amount of coins with me the previous time, I am nice and increase my offer to you; ")
+                        }
+                        return Pair(historyHuman.last(), "Because you shared the same amount of coins with me the previous time, I pay the favor back and")
                     } else -> {
                     return Pair(1, "")
                 }
