@@ -21,7 +21,7 @@ Each turn goes like this:
 
 First, the Furhat robot will play the role of the 'proposer' and you will be the 'responder'.
 Then, we will take turns and change roles.
-In total, we will play **three sessions** with **six rounds** each.
+In total, we will play **six rounds**.
 Feel free to make notes about the amount of coins you received after each turn.
 
 Depending on the amount of coins you receive during the game, you will rewarded with more or less sweets for participating in the experiment.
